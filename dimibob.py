@@ -44,8 +44,13 @@ def main(stdscr):
     print(now_str)
     # print(bob_data[now_str])
     # input()
+
     curses.init_pair(1, 184, 0)
     curses.init_pair(2, 123, 0)
+    curses.init_pair(3, 248, 0)
+
+    stdscr.addstr(0, 0, "Press 'h' for help. (WIP)", curses.color_pair(3))
+    stdscr.addstr(1, 0, "Press 'q' to quit.", curses.color_pair(3))
     stdscr.addstr(1, 30, f'{now.year}년 {now.month}월 {now.day}일')
     col = -24
     for k in eng2kor:
@@ -59,9 +64,10 @@ def main(stdscr):
             # stdscr.addstr('\n')
             # stdscr.addstr(j + '\n', curses.color_pair(2))
         # stdscr.addstr(sp_meal + '\n', curses.color_pair(2))
-        
+    stdscr.move(0, 0)
     stdscr.refresh()
-    stdscr.getkey()
+    while stdscr.getkey() != 'q':
+        a = 0
 
 fetch_bob(6)
 # print(bob_data)
