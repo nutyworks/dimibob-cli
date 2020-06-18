@@ -46,10 +46,10 @@ def main(stdscr):
     # input()
     curses.init_pair(1, 184, 0)
     curses.init_pair(2, 123, 0)
-    line = 0
+    stdscr.addstr(1, 30, f'{now.year}년 {now.month}월 {now.day}일')
     col = -24
     for k in eng2kor:
-        line = 1
+        line = 3
         col += 25
         stdscr.addstr(line, col, eng2kor[k] + ' ', curses.color_pair(1))
         for j in bob_data[now_str][k].split('/'):
