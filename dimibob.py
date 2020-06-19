@@ -1,7 +1,7 @@
 import curses
 import urllib.request, json 
 from colored import fg, bg, attr
-from datetime import datetime
+from datetime import datetime, timedelta
 
 max_day = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
@@ -34,40 +34,61 @@ def fetch_bob(month):
         for i in bob_data:
             f.write("%d%%%s%%%s%%%s\n" % (i, bob_data[i]['breakfast'], \
                             bob_data[i]['lunch'], bob_data[i]['dinner']))
+
+
+def display_bob(stdscr, date):
+    # print(date, type(date))
+
+    stdscr.addstr(0, 0, "Press 'h' for help. (WIP)", curses.color_pair(3))
+    stdscr.addstr(1, 0, "Press 'q' to quit.", curses.color_pair(3))
+
+    date_str = date.year * 10000 + date.month * 100 + date.day
+    stdscr.addstr(1, 30, '{}년 {:0>2}월 {:0>2}일'.format(date.year, date.month, date.day))
+    
+    for i in range(3, 20):
+        stdscr.addstr(i, 0, ' ' * 100)
+    if date_str in bob_data:
+        col = -24
+        for k in eng2kor:
+            line = 3
+            col += 25
+            stdscr.addstr(line, col, eng2kor[k] + ' ', curses.color_pair(1))
+            for j in bob_data[date_str][k].split('/'):
+                line += 1
+                if line < 40:
+                    stdscr.addstr(line, col + 1, j + '\n')
+                # stdscr.addstr('\n')
+                # stdscr.addstr(j + '\n', curses.color_pair(2))
+            # stdscr.addstr(sp_meal + '\n', curses.color_pair(2))
+    else:
+        stdscr.addstr(4, 28, '급식 정보가 없습니다')
+    stdscr.move(0, 0)
+    stdscr.refresh()
         
 
 def main(stdscr):
     stdscr.clear()
+
     now = datetime.now()
-    now_str = now.year * 10000 + now.month * 100 + now.day
-    # keymap = # q: quit, l: next day, h: prev day    
-    print(now_str)
-    # print(bob_data[now_str])
-    # input()
 
     curses.init_pair(1, 184, 0)
     curses.init_pair(2, 123, 0)
     curses.init_pair(3, 248, 0)
 
-    stdscr.addstr(0, 0, "Press 'h' for help. (WIP)", curses.color_pair(3))
-    stdscr.addstr(1, 0, "Press 'q' to quit.", curses.color_pair(3))
-    stdscr.addstr(1, 30, f'{now.year}년 {now.month}월 {now.day}일')
-    col = -24
-    for k in eng2kor:
-        line = 3
-        col += 25
-        stdscr.addstr(line, col, eng2kor[k] + ' ', curses.color_pair(1))
-        for j in bob_data[now_str][k].split('/'):
-            line += 1
-            if line < 40:
-                stdscr.addstr(line, col + 1, j + '\n')
-            # stdscr.addstr('\n')
-            # stdscr.addstr(j + '\n', curses.color_pair(2))
-        # stdscr.addstr(sp_meal + '\n', curses.color_pair(2))
-    stdscr.move(0, 0)
-    stdscr.refresh()
-    while stdscr.getkey() != 'q':
-        a = 0
+
+    display_bob(stdscr, now)
+    while True:
+        key = stdscr.getkey() 
+        if key == 'q':
+            break
+        if key == 'l':
+            now = (now + timedelta(seconds=86400))
+            display_bob(stdscr, now)
+        if key == 'h':
+            now = (now - timedelta(seconds=86400))
+            display_bob(stdscr, now)
+
+
 
 fetch_bob(6)
 # print(bob_data)
