@@ -9,12 +9,12 @@ bob_data = {}
 eng2kor = {'breakfast': '아침', 'lunch': '점심', 'dinner': '저녁'}
 
 def init():
-    if not os.path.isfile('./bob.db'):
-        f = open('./bob.db', 'w')
+    if not os.path.isfile('/tmp/bob.db'):
+        f = open('/tmp/bob.db', 'w')
         f.close()
 
 def fetch_bob(month):
-    with open('./bob.db', 'r') as f:
+    with open('/tmp/bob.db', 'r') as f:
         for tmp in f.readlines():
             date = int(tmp.split('%')[0])
             meal = {
@@ -22,7 +22,7 @@ def fetch_bob(month):
                 'lunch': tmp.split('%')[2],
                 'dinner': tmp.split('%')[3].replace('\n', ''),
             }
-            # print(date, meal)
+            # print(date, meal
             bob_data[date] = meal
     for i in range(20200000 + month * 100 + 1, 20200000 + month * 100+ max_day[month] + 1):
         if i not in bob_data:
@@ -35,7 +35,7 @@ def fetch_bob(month):
                 # print('failed to fetch %d' % i)
                 break
     # print(bob_data)
-    with open('./bob.db', 'w') as f:
+    with open('/tmp/bob.db', 'w') as f:
         for i in bob_data:
             f.write("%d%%%s%%%s%%%s\n" % (i, bob_data[i]['breakfast'], \
                             bob_data[i]['lunch'], bob_data[i]['dinner']))
@@ -62,8 +62,13 @@ def bob_time(ban, date):
     p = p % 6
     # print('p', p)
 
-    return (datetime.timedelta(seconds=time['lunch'][(ban - p) % 6]),
-            datetime.timedelta(seconds=time['dinner'][5 - (ban - p) % 6]))
+    lunch_time = time['lunch'][(ban - p) % 6]
+    dinner_time = time['dinner'][5 - (ban - p) % 6]
+    if d == 3:
+        dinner_time -= 1500
+
+    return (datetime.timedelta(seconds=lunch_time),
+            datetime.timedelta(seconds=dinner_time))
 
 
 def display_bob(stdscr, date):
