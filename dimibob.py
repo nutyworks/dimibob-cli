@@ -6,6 +6,7 @@ import os.path
 max_day = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
 bob_data = {}
+raw_data = {}
 eng2kor = {'breakfast': '아침', 'lunch': '점심', 'dinner': '저녁'}
 
 def init():
@@ -23,6 +24,7 @@ def fetch_bob(month):
                 'dinner': tmp.split('%')[3].replace('\n', ''),
             }
             # print(date, meal
+            raw_data[date] = tmp.split('%', 1)[1]
             bob_data[date] = meal
     for i in range(20200000 + month * 100 + 1, 20200000 + month * 100+ max_day[month] + 1):
         if i not in bob_data:
@@ -74,7 +76,7 @@ def bob_time(ban, date):
 def display_bob(stdscr, date):
     # print(date, type(date))
 
-    stdscr.addstr(0, 0, "Press ';' for help. (WIP)", curses.color_pair(3))
+    stdscr.addstr(0, 0, "Press ';' for help.", curses.color_pair(3))
     stdscr.addstr(1, 0, "Press 'q' to quit.", curses.color_pair(3))
 
     date_str = date.year * 10000 + date.month * 100 + date.day
@@ -101,6 +103,21 @@ def display_bob(stdscr, date):
         stdscr.addstr(4, 28, '급식 정보가 없습니다')
     stdscr.move(0, 0)
     stdscr.refresh()
+
+
+def display_help(stdscr):
+    stdscr.clear()
+
+    stdscr.addstr(0, 0, "Press ';' for bob.", curses.color_pair(3))
+    stdscr.addstr(1, 0, "Press 'q' to quit.", curses.color_pair(3))
+
+    stdscr.addstr(3, 1, "H - 1주 전으로 이동")
+    stdscr.addstr(4, 1, "h - 1일 전으로 이동")
+
+    stdscr.addstr(6, 1, "L - 1주 후로 이동")
+    stdscr.addstr(7, 1, "l - 1일 후로 이동")
+
+    stdscr.addstr(9, 1, "t - 오늘로 이동")
         
 
 def main(stdscr):
@@ -113,19 +130,72 @@ def main(stdscr):
     curses.init_pair(3, 248, 0)
 
     display_bob(stdscr, now)
+    
+    is_help_screen = False
+    is_searching = False
+
+    cursor = 8
+
     while True:
         key = stdscr.getkey() 
-        if key == 'q':
+        if is_help_screen:
+            if key == ';':
+                is_help_screen = not is_help_screen
+                display_bob(stdscr, now)
+        elif is_searching:
+            if key == '\n':
+                is_searching = False
+                curses.noecho()
+            elif ord(key[0]) == 27:
+                is_searching = False
+                curses.noecho()
+            elif key == 'KEY_BACKSPACE':
+                s = stdscr.getstr(2, cursor - 2, 1)
+
+                if ord(s) < 128:
+                    cursor -= 1
+                    if cursor < 8:
+                        cursor = 8
+                    stdscr.addstr(2, cursor, " ")
+                else:
+                    cursor -= 2
+                    if cursor < 8:
+                        cursor = 8
+                    stdscr.addstr(2, cursor, "  ")
+
+                stdscr.move(2, cursor)
+            else:
+                if ord(key[0]) < 200:
+                    cursor += 1
+                print(cursor, ord(key))
+
+        elif key == 'q':
             break
-        if key == 'l':
-            now = (now + datetime.timedelta(seconds=86400))
-            display_bob(stdscr, now)
-        if key == 'h':
-            now = (now - datetime.timedelta(seconds=86400))
-            display_bob(stdscr, now)
+        else:
+            if key == 't':
+                now = datetime.datetime.now()
+                display_bob(stdscr, now)
+            elif key == 'l':
+                now = (now + datetime.timedelta(seconds=86400))
+                display_bob(stdscr, now)
+            elif key == 'h':
+                now = (now - datetime.timedelta(seconds=86400))
+                display_bob(stdscr, now)
+            elif key == 'L':
+                now = (now + datetime.timedelta(seconds=604800))
+                display_bob(stdscr, now)
+            elif key == 'H':
+                now = (now - datetime.timedelta(seconds=604800))
+                display_bob(stdscr, now)
+            elif key == '/':
+                is_searching = True
+                curses.echo()
+                stdscr.addstr(2, 0, "Search: ")
+            elif key == ';':
+                is_help_screen = not is_help_screen
+                display_help(stdscr)
 
 
 init()
 fetch_bob(6)
 curses.wrapper(main)
-bob_time(1, datetime.datetime(2020, 6, 3, 00,0,0))
